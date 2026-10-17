@@ -51,3 +51,15 @@ Deskripsi: Admin membuat dan menonaktifkan akun serta menetapkan peran (Pelapor,
 Prioritas: Medium
 Alasan: Prasyarat pembedaan hak akses pada dua tingkat persetujuan.
 
+## Nonfunctional Requirement
+
+Asumsi beban: P = 121 pengguna aktif bersamaan (concurrent active users). Dengan rata-rata jeda antaraksi sekitar 20 detik, beban normal sekitar 6 permintaan/detik, dan dengan faktor puncak 2x beban rancangan sekitar 12 permintaan/detik.
+
+| ID | Kategori | Pernyataan Terukur | Alasan |
+|---|---|---|---|
+| NFR-01 | Performance | Pada 121 pengguna aktif bersamaan (±12 permintaan/detik), fungsi utama (FR-01 s.d. FR-06) merespons ≤ 3 detik untuk ≥ 95% permintaan, dan rekap (FR-07) ≤ 5 detik. | XX = 3 detik: batas wajar agar pelapor di perangkat bergerak tidak mengira sistem macet. Rekap lebih berat sehingga diberi 5 detik. |
+| NFR-02 | Capacity dan Scalability | Sistem melayani minimal 121 sesi aktif bersamaan tanpa penurunan layanan, dan arsitektur dapat ditingkatkan ke 2× P (242) hanya dengan menambah sumber daya, tanpa mengubah desain. | Beban puncak (awal semester, ujian) dapat melebihi rata-rata. |
+| NFR-03 | Security | (a) Akses berbasis peran: 100% endpoint FR-02 s.d. FR-08 menolak peran yang tidak berhak (HTTP 403). (b) Kata sandi disimpan ter-hash, komunikasi lewat HTTPS. (c) Sesi kedaluwarsa setelah 30 menit tidak aktif. | Verifikator dan Kepala Bagian memegang kewenangan keputusan sehingga akses harus dipisah.|
+| NFR-04 | Usability | Pelapor baru dapat mengirim laporan ≤ 3 menit dengan ≤ 5 isian wajib tanpa pelatihan, diuji pada ≥ 5 responden dengan tingkat keberhasilan ≥ 80%. | Pelapor sangat beragam dan tidak terlatih. |
+| NFR-05 | Reliability dan Availability | Ketersediaan ≥ 99% pada jam layanan (07.00–17.00 WITA, Senin–Jumat), yaitu toleransi gangguan ≤ ±2 jam per bulan; laporan yang sudah dikirim tidak boleh hilang (0 kehilangan data pada uji simpan). | Laporan bisa menyangkut keselamatan, tetapi sistem kampus tidak memerlukan 24/7. |
+| NFR-06 | Constraint NIM: persetujuan dua tingkat | (a) 100% laporan wajib melalui Level 1 lalu Level 2 secara berurutan; uji: 0 transisi ke DISETUJUI tanpa catatan kedua tingkat. (b) Pengguna yang sama tidak boleh menyetujui kedua tingkat pada satu laporan. (c) Setiap keputusan mencatat siapa, kapan, dan alasan. (d) Dua pengguna yang memproses laporan yang sama bersamaan: hanya satu yang berhasil (optimistic locking). | Mencegah persetujuan dilompati atau dimanipulasi; poin (d) penting karena ada 121 pengguna bersamaan. |
