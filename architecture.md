@@ -42,3 +42,28 @@ Asumsi beban (konsisten dengan B2): beban normal ≈ 6 permintaan/detik, beban r
 | Pemisahan tugas | PersetujuanService menolak jika idPengguna sama dengan pemberi verifikasi laporan itu. |
 | Jejak keputusan | Class Verifikasi, Persetujuan, dan RiwayatStatus menyimpan siapa, kapan, dan alasan. |
 | Keputusan serentak | versi pada Laporan (optimistic locking). |
+
+## Design Pattern: Observer
+1.	Masalah Desain
+Setiap kali status laporan berubah, banyak modul lain yang harus diproses (seperti mencatat RiwayatStatus, mengirim Notifikasi, dan memperbarui cache rekap). Jika kelas Laporan memanggil semua modul ini secara langsung, struktur kode akan menjadi sangat terikat (tight coupling) dan sulit dikembangkan saat ada penambahan fitur baru. 
+2.	Pattern yang Dipilih
+Observer Pattern (Pertemuan 6). Objek utama (Subject/Laporan) menyimpan daftar Observer dan otomatis memberi tahu seluruh Observer saat terjadi perubahan status tanpa perlu tahu detail cara kerja mereka (loose coupling). 
+3.	Penerapan pada Sistem
+Diterapkan pada eksekusi fungsi LaporanService.ubahStatus() di lapisan Business Logic. Observer yang terdaftar meliputi: RiwayatObserver, NotifikasiObserver, dan CacheRekapObserver. 
+4.	Alasan Memilih Observer Dibanding Alternatif (Strategy)
+Pola Strategy digunakan untuk memilih salah satu algoritma dari beberapa pilihan. Sedangkan kebutuhan sistem di sini adalah menyiarkan satu kejadian (event) perubahan status ke banyak modul penerima sekaligus secara dinamis (sesuai prinsip Open/Closed Principle). 
+
+![Gambar 5. Class Diagram Penerapan Observer](diagram/Class-Diagram-Penerapan-Observer-Nazwa.png)
+
+## Trade-off Keputusan Desain
+Menggunakan satu aplikasi monolit berlapis dengan satu basis data, bukan memecah menjadi layanan-layanan terpisah (misalnya layanan pelaporan, persetujuan, dan notifikasi).
+Keuntungan:
+1.	Sederhana untuk dibangun, diuji, dan dikelola oleh tim kecil.
+2.	Seluruh perubahan status, riwayat, dan persetujuan dapat berada dalam satu transaksi basis data, sehingga aturan dua tingkat dan penelusuran jejak tetap konsisten.
+3.	Cukup untuk P = 121 (± 12 permintaan/detik) tanpa biaya infrastruktur tambahan.
+Kelemahan:
+1.	Seluruh komponen dirilis bersama; perubahan kecil pada notifikasi tetap mengharuskan rilis ulang seluruh aplikasi.
+2.	Satu aplikasi dan satu basis data adalah titik kegagalan tunggal, sehingga ketersediaan (NFR-05) bergantung pada satu lokasi.
+3.	Jika beban tumbuh jauh melampaui 2P, skala vertikal atau pemecahan layanan akan diperlukan dan memerlukan penataan ulang.
+
+Alasan tetap dipilih karena kasus pengaduan fasilitas kampus berskala kecil dengan ruang lingkup yang sudah terdefinisi jelas, serta alur persetujuan dua tingkat membutuhkan konsistensi transaksi data yang paling efektif dijamin dalam satu basis data terpusat. Walaupun memiliki konsekuensi berupa potensi titik kegagalan tunggal (single point of failure) dan keharusan rilis aplikasi secara menyeluruh, kelemahan ini berhasil dimitigasi tanpa mengubah arsitektur dasar, yaitu dengan memisahkan tiap lapisan secara ketat agar siap ditransisikan ke microservices di masa depan, membuat aplikasi bersifat stateless untuk mempermudah penambahan kapasitas (scaling) hingga menangani beban puncak 2 x P (242 pengguna aktif), serta memastikan ketersediaan sistem sebesar 99\% pada jam kerja kampus yang sudah sangat mencukupi kebutuhan operasional.
