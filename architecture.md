@@ -1,6 +1,8 @@
 # Architecture - Nazwa Salwa Adellia | 2440304021
 
 ## Arsitektur: Layered
+![Gambar 4. Arsitektur Layered](diagram/arsitektur-layered-Nazwa.png)
+
 ### Alasan memilih Layered Architecture
 1.	Ruang lingkup sistem sudah jelas (mulai dari pelaporan hingga rekapitulasi) dengan beban P = 121 pengguna aktif. Layered Architecture sudah sangat mencukupi tanpa perlu kerumitan sistem terdistribusi.  
 2.	Aturan persetujuan dua tingkat dipusatkan penuh di lapisan Business Logic. Hal ini menjamin aturan tidak dapat dimanipulasi atau dilompati, baik melalui antarmuka web maupun API luar.
@@ -22,13 +24,11 @@
 
 ### Cara menangani P = 121 pengguna aktif
 Asumsi beban (konsisten dengan B2): beban normal ≈ 6 permintaan/detik, beban rancangan puncak ≈ 12 permintaan/detik.
-Aspek	Strategi	Argumentasi untuk P = 121
+
 | Aspek | Strategi | Argumentasi untuk P = 121  |
 |---|---|---|
 | Kapasitas aplikasi | Satu instance aplikasi dengan kumpulan thread terbatas (misalnya 8–16 worker); aplikasi dibuat stateless | Bila rata-rata pemrosesan ±200 ms, satu worker menangani ±5 permintaan/detik, sehingga 8 worker ≈ 40 permintaan/detik, jauh di atas 12. Angka ini asumsi rancangan, bukan hasil uji. |
-
 | Koneksi basis data | Connection pool ukuran ±10–20 | Cukup untuk 121 sesi karena sebagian besar sesi menganggur di antara aksi. |
-
 | Kueri | Indeks pada status, tanggal_lapor, id_pelapor; daftar dipaginasi (misalnya 20 baris) | Menjaga daftar laporan tetap cepat meski data bertambah. |
 | Cache | Data rujukan (fasilitas, kategori) dan hasil rekap di-cache ±60 detik; dibatalkan oleh CacheRekapObserver saat status berubah | Rekap (FR-07) adalah kueri agregat paling berat, dan batas respons 5 detik di NFR-01 bisa dipenuhi. |
 | Skalabilitas ke 2P (242) | Karena aplikasi stateless, tambah instance di belakang load balancer; basis data tetap satu | Memenuhi NFR-02 tanpa mengubah desain. Load balancer belum wajib pada P = 121, hanya disiapkan. |
@@ -36,6 +36,7 @@ Aspek	Strategi	Argumentasi untuk P = 121
 		
 ### Cara menangani constraint wajib (persetujuan dua tingkat)
 | Kebutuhan NFR-06 | Mekanisme dalam arsitektur |
+|---|---|
 | Urutan wajib Level 1 → Level 2 | Mesin status di LaporanService: hanya transisi DIAJUKAN → TERVERIFIKASI → DISETUJUI yang diizinkan; transisi lain ditolak. |
 | Hak akses per tingkat | Lapisan Application (RBAC) memeriksa peran sebelum permintaan menyentuh Business Logic; pemeriksaan ganda di PersetujuanService. |
 | Pemisahan tugas | PersetujuanService menolak jika idPengguna sama dengan pemberi verifikasi laporan itu. |
