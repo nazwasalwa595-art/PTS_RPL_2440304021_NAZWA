@@ -8,7 +8,7 @@
 | Digit terakhir NIM | 1 -> Sistem Pengaduan Kerusakan Fasilitas Kampus |
 | Digit kedua dari belakang | 2 -> Terdapat proses persetujuan dua tingkat |
 | P | 100 + 021 = 121 pengguna aktif bersamaan (concurrent active users) |
-| Video YouTube (Unlisted) | (MENYUSUL NNTI UPDATE) |
+| Video YouTube (Unlisted) | https://youtu.be/LNtLtdyrxlQ |
 
 ## Struktur Repository
 - requirements.md : kebutuhan fungsional, nonfungsional, user story, traceability
